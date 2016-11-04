@@ -77,11 +77,12 @@ public class HBaseTest {
         try {
             HTable table = new HTable(conf, tableName);
             Put put = new Put(Bytes.toBytes(rowKey));
+            //Adding the user and his information to the table
             put.add(Bytes.toBytes(family), Bytes.toBytes(qualifier), Bytes
                     .toBytes(value));
             table.put(put);
-            System.out.println("insert recored " + rowKey + " to table "
-                    + tableName + " ok.");
+            System.out.println("insert user " + rowKey + " to table "
+                    + tableName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,15 +94,16 @@ public class HBaseTest {
     public static void delRecord(String tableName, String rowKey)
             throws IOException {
         HTable table = new HTable(conf, tableName);
+        //Create a list of info to delete
         List<Delete> list = new ArrayList<Delete>();
         Delete del = new Delete(rowKey.getBytes());
         list.add(del);
         table.delete(list);
-        System.out.println("del recored " + rowKey + " ok.");
+        System.out.println("User " + rowKey + " deleted.");
     }
 
     /**
-     * Delete a column
+     * Delete a friend of a user
      */
     public static void delSpecificRecord(String tableName, String rowKey, String friend)
             throws IOException {
@@ -109,7 +111,7 @@ public class HBaseTest {
         Delete del = new Delete(rowKey.getBytes());
         del.deleteColumn(Bytes.toBytes("Friends"), Bytes.toBytes(friend));
         table.delete(del);
-        System.out.println("del recored ok.");
+        System.out.println(friend + " has been delted from "+ rowKey);
     }
 
     /**
@@ -120,10 +122,12 @@ public class HBaseTest {
         Get get = new Get(rowKey.getBytes());
         Result rs = table.get(get);
         int exist = 0;
+        //Checking if user exist
         if (rs.size() == 0){
             System.out.println("Error, " + rowKey + " doesn't exist");
             exist = 0;
         } else {
+          //Checking if we print the user
             if (print){
                 for(KeyValue kv : rs.raw()) {
                     System.out.print(new String(kv.getRow()) + " ");
@@ -141,7 +145,7 @@ public class HBaseTest {
     }
 
     /**
-     * Get a specific row
+     * Get a specific record
      */
     public static int getSpecificRecord (String tableName, String rowKey, String field) throws IOException{
         HTable table = new HTable(conf, tableName);
@@ -156,7 +160,7 @@ public class HBaseTest {
         }
         return exist;
     }
-    
+
     /**
      * Scan (or list) a table
      */
@@ -164,6 +168,7 @@ public class HBaseTest {
         try{
             HTable table = new HTable(conf, tableName);
             Scan s = new Scan();
+            //Scanning the table to retrieve info
             ResultScanner ss = table.getScanner(s);
             for(Result r:ss){
                 for(KeyValue kv : r.raw()){
@@ -179,6 +184,9 @@ public class HBaseTest {
             e.printStackTrace();
         }
     }
+    /**
+    * Check if user already have a BFF
+    */
 
     public static int getBFF(String tableName, String rowKey) throws IOException{
         HTable table = new HTable(conf, tableName);
@@ -201,7 +209,9 @@ public class HBaseTest {
             String tableName = "tlorillon";
             String[] familys = { "Info", "Friends" };
             HBaseTest.creatTable(tableName, familys);
-
+            /**
+            *Fill the database with values
+            */
             HBaseTest.addRecord(tableName, "Pierre", "Info", "age", "25");
             HBaseTest.addRecord(tableName, "Pierre", "Info", "email", "pierre@hadoop.fr");
             HBaseTest.addRecord(tableName, "Pierre", "Friends", "Zeitoun", "BFF");
@@ -228,6 +238,9 @@ public class HBaseTest {
             do {
                 int exist, bff;
                 String user, friend, info;
+                /**
+                * Menu for user
+                */
                 System.out.print("\n\t\t\tWelcome to your Social Network Account\n\n\n");
                 System.out.print("\t1.Show All the Users");
                 System.out.print("\t\t\t2.Show one user\n\n");
@@ -403,6 +416,7 @@ public class HBaseTest {
                         System.out.println("Please enter a valid choice! (Value between 0 and 8)");
                     }
                 } catch (Exception e) {
+                  //Verifying user input
                     e.printStackTrace();
                     sc.next();
 
